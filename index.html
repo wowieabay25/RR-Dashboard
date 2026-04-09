@@ -208,8 +208,8 @@ td{padding:9px 13px;white-space:nowrap;vertical-align:middle}
 <!-- LOADING SCREEN -->
 <div id="loadingScreen">
   <div class="spinner"></div>
-  <div class="loading-text" id="loadingText">Fetching latest data…</div>
-  <div class="loading-sub" id="loadingSub">Connecting to data source</div>
+  <div class="loading-text" id="loadingText">Connecting to Google Sheets…</div>
+  <div class="loading-sub" id="loadingSub">Please wait, fetching data…</div>
 </div>
 
 <!-- ERROR BANNER -->
@@ -231,7 +231,7 @@ td{padding:9px 13px;white-space:nowrap;vertical-align:middle}
   </div>
   <div class="header-right">
     <span class="data-age" id="dataAge"></span>
-    <button class="refresh-btn" id="refreshBtn" onclick="fetchAndRender()">
+    <button class="refresh-btn" id="refreshBtn" onclick="fetchAndRender(true)">
       <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
       Refresh
     </button>
@@ -426,38 +426,99 @@ const ini=s=>s.trim().slice(0,2).toUpperCase();
 const set=(id,val)=>{const el=document.getElementById(id);if(el)el.textContent=val};
 
 // ── FETCH & PARSE ──────────────────────────────────────
-async function fetchAndRender() {
+const CACHE_TTL = 5 * 60 * 1000; // 5 minutes
+let cachedText = null, cacheTime = 0;
+
+async function fetchWithTimeout(url, ms) {
+  const controller = new AbortController();
+  const tid = setTimeout(() => controller.abort(), ms);
+  try {
+    const res = await fetch(url, { signal: controller.signal, cache: 'no-store' });
+    clearTimeout(tid);
+    return res;
+  } catch(e) {
+    clearTimeout(tid);
+    throw e;
+  }
+}
+
+async function fetchAndRender(forceRefresh = false) {
   const btn = document.getElementById('refreshBtn');
   btn.classList.add('spinning');
-  setLoading(true, 'Fetching latest data…', CSV_URL.split('/').pop());
 
+  if (!forceRefresh && cachedText && (Date.now() - cacheTime < CACHE_TTL)) {
+    setLoading(true, 'Loading from cache…', 'Data is up to date');
+    await new Promise(r => setTimeout(r, 80));
+    allData = parseCSV(cachedText);
+    renderAfterFetch();
+    setLoading(false);
+    btn.classList.remove('spinning');
+    return;
+  }
+
+  setLoading(true, 'Connecting to Google Sheets…', 'Please wait…');
+
+  // Try direct fetch first, then CORS proxy fallback
+  const directURL = CSV_URL;
+  const proxyURL = 'https://corsproxy.io/?' + encodeURIComponent(CSV_URL);
+
+  let text = null;
+  let lastErr = '';
+
+  // Attempt 1: direct (works when hosted on a server / GitHub Pages)
   try {
-    // Cache-bust so GitHub serves fresh CSV, not a cached copy
-    const sep = CSV_URL.includes('?') ? '&' : '?';
-    const url = CSV_URL + sep + 't=' + Date.now();
-    const res = await fetch(url);
-    if (!res.ok) throw new Error(`HTTP ${res.status} — check your CSV_URL in the script`);
-    const text = await res.text();
+    set('loadingText', 'Fetching data…');
+    set('loadingSub', 'Attempt 1 of 2 — direct connection');
+    const res = await fetchWithTimeout(directURL, 12000);
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    text = await res.text();
+  } catch(e) {
+    lastErr = e.message;
+    console.warn('Direct fetch failed:', e.message);
+  }
+
+  // Attempt 2: CORS proxy fallback
+  if (!text) {
+    try {
+      set('loadingText', 'Retrying via proxy…');
+      set('loadingSub', 'Attempt 2 of 2 — CORS proxy');
+      const res = await fetchWithTimeout(proxyURL, 15000);
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      text = await res.text();
+    } catch(e) {
+      lastErr = e.message;
+      console.warn('Proxy fetch failed:', e.message);
+    }
+  }
+
+  if (text) {
+    cachedText = text;
+    cacheTime = Date.now();
     allData = parseCSV(text);
-    lastFetched = new Date();
-
-    const today = new Date();
-    set('asOfDate', today.toLocaleDateString('en-PH',{month:'long',day:'numeric',year:'numeric'}));
-    set('dataAge','Last fetched: '+lastFetched.toLocaleTimeString('en-PH',{hour:'2-digit',minute:'2-digit'}));
-
-    activeBucket='ALL'; activeSupplier=null;
-    document.querySelectorAll('.bucket-btn').forEach(b=>b.classList.remove('active'));
-    document.querySelector('.bucket-btn[data-bucket="ALL"]').classList.add('active');
-    clearFilters();
-    renderAll();
+    renderAfterFetch();
     setLoading(false);
-    document.getElementById('errorBanner').style.display='none';
-  } catch(err) {
+    document.getElementById('errorBanner').style.display = 'none';
+  } else {
     setLoading(false);
-    showError(err.message);
-    console.error('Fetch error:', err);
+    showError(
+      (lastErr.includes('abort') || lastErr.includes('Abort') ? 'Request timed out. ' : lastErr + '. ') +
+      'Make sure this file is hosted on GitHub Pages (not opened locally). ' +
+      'If already hosted, check that the Google Sheet is published: File → Share → Publish to web → CSV.'
+    );
   }
   btn.classList.remove('spinning');
+}
+
+function renderAfterFetch() {
+  const today = new Date();
+  lastFetched = new Date();
+  set('asOfDate', today.toLocaleDateString('en-PH',{month:'long',day:'numeric',year:'numeric'}));
+  set('dataAge','Last fetched: '+lastFetched.toLocaleTimeString('en-PH',{hour:'2-digit',minute:'2-digit'}));
+  activeBucket='ALL'; activeSupplier=null;
+  document.querySelectorAll('.bucket-btn').forEach(b=>b.classList.remove('active'));
+  document.querySelector('.bucket-btn[data-bucket="ALL"]').classList.add('active');
+  clearFilters();
+  renderAll();
 }
 
 function setLoading(show, text='', sub='') {
