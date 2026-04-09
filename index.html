@@ -186,10 +186,10 @@ td{padding:9px 13px;white-space:nowrap;vertical-align:middle}
 
 <!-- ERROR BANNER -->
 <div id="errorBanner">
-  <strong>⚠️ Could not load data from GitHub</strong>
+  <strong>⚠️ Could not load data</strong>
   <span id="errorMsg"></span><br><br>
-  <strong>To fix this:</strong> Open this file, find <code>CSV_URL</code> near the top of the script, and update it with your correct GitHub raw URL.<br>
-  The URL format should be: <code>https://raw.githubusercontent.com/YOUR_USERNAME/YOUR_REPO/main/RR_no_AP.csv</code>
+  <strong>To fix this:</strong> Open this file, find <code>CSV_URL</code> near the top of the script, and update it with your correct Google Sheets published CSV URL.<br>
+  The URL format should be: <code>https://docs.google.com/spreadsheets/d/e/YOUR_SHEET_ID/pub?gid=0&amp;single=true&amp;output=csv</code>
 </div>
 
 <!-- HEADER -->
@@ -289,7 +289,7 @@ td{padding:9px 13px;white-space:nowrap;vertical-align:middle}
 //  ★  UPDATE THIS URL AFTER UPLOADING TO GITHUB  ★
 //  Format: https://raw.githubusercontent.com/USERNAME/REPO/main/FILENAME.csv
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-const CSV_URL = 'https://raw.githubusercontent.com/wowieabay25/RR-Dashboard/refs/heads/main/RR_no_AP.csv'
+const CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSOMQ8Ua9z-8WbkMCJc-XxY4ySdQrJnak-uPAeiQNtaJpL1Ta7QGKPuIcwQbXAM0wBTSwOkX6iuzcNp/pub?gid=0&single=true&output=csv'
 
 // ── CONSTANTS ──────────────────────────────────────────
 const PAGE_SIZE = 50;
@@ -318,7 +318,8 @@ async function fetchAndRender() {
 
   try {
     // Cache-bust so GitHub serves fresh CSV, not a cached copy
-    const url = CSV_URL + '?t=' + Date.now();
+    const sep = CSV_URL.includes('?') ? '&' : '?';
+    const url = CSV_URL + sep + 't=' + Date.now();
     const res = await fetch(url);
     if (!res.ok) throw new Error(`HTTP ${res.status} — check your CSV_URL in the script`);
     const text = await res.text();
