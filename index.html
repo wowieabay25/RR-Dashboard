@@ -173,34 +173,6 @@ td{padding:9px 13px;white-space:nowrap;vertical-align:middle}
 ::-webkit-scrollbar-track{background:var(--surface2)}
 ::-webkit-scrollbar-thumb{background:var(--dim);border-radius:3px}
 ::-webkit-scrollbar-thumb:hover{background:var(--muted)}
-/* FILTER PANEL (slide-in drawer) */
-.filter-overlay{position:fixed;inset:0;background:rgba(26,20,16,0.35);z-index:200;opacity:0;pointer-events:none;transition:opacity .25s}
-.filter-overlay.open{opacity:1;pointer-events:all}
-.filter-drawer{position:fixed;top:0;right:-380px;width:360px;height:100vh;background:var(--surface);border-left:1px solid var(--border);z-index:201;display:flex;flex-direction:column;transition:right .28s cubic-bezier(.4,0,.2,1);box-shadow:-4px 0 24px rgba(180,140,100,0.12)}
-.filter-drawer.open{right:0}
-.drawer-header{display:flex;align-items:center;justify-content:space-between;padding:18px 20px;border-bottom:1px solid var(--border);background:var(--surface2)}
-.drawer-title{font-size:14px;font-weight:600;color:var(--text)}
-.drawer-close{background:none;border:1px solid var(--border);border-radius:6px;padding:5px 9px;cursor:pointer;color:var(--muted);font-size:13px;transition:all .15s}
-.drawer-close:hover{border-color:var(--accent);color:var(--accent)}
-.drawer-body{flex:1;overflow-y:auto;padding:20px}
-.drawer-footer{padding:14px 20px;border-top:1px solid var(--border);display:flex;gap:8px}
-.drawer-section{margin-bottom:20px}
-.drawer-label{font-family:'DM Mono',monospace;font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.1em;margin-bottom:8px}
-.drawer-search{width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:10px 14px;color:var(--text);font-family:'Sora',sans-serif;font-size:12px;outline:none;transition:border-color .2s;box-sizing:border-box}
-.drawer-search:focus{border-color:var(--accent)}
-.drawer-search::placeholder{color:var(--muted)}
-.drawer-select{width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:10px 12px;color:var(--text);font-family:'Sora',sans-serif;font-size:12px;outline:none;cursor:pointer;box-sizing:border-box}
-.btn-apply{flex:1;background:var(--accent);color:#fff;border:none;border-radius:8px;padding:10px;font-family:'Sora',sans-serif;font-size:12px;font-weight:600;cursor:pointer;transition:background .2s}
-.btn-apply:hover{background:var(--accent2)}
-.btn-clear-all{background:var(--surface2);color:var(--muted);border:1px solid var(--border);border-radius:8px;padding:10px 14px;font-family:'Sora',sans-serif;font-size:12px;cursor:pointer;transition:all .2s}
-.btn-clear-all:hover{border-color:var(--red);color:var(--red)}
-/* Filter trigger button in table header */
-.filter-trigger{display:flex;align-items:center;gap:6px;background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:6px 12px;font-family:'Sora',sans-serif;font-size:12px;color:var(--muted);cursor:pointer;transition:all .2s;white-space:nowrap}
-.filter-trigger:hover{border-color:var(--accent);color:var(--accent)}
-.filter-trigger.has-filters{border-color:var(--accent);color:var(--accent);background:rgba(217,123,74,0.07)}
-.filter-badge{background:var(--accent);color:#fff;border-radius:10px;padding:1px 6px;font-size:10px;font-weight:600;margin-left:2px}
-.export-btn{display:flex;align-items:center;gap:6px;background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:6px 12px;font-family:'Sora',sans-serif;font-size:12px;color:var(--muted);cursor:pointer;transition:all .2s;white-space:nowrap}
-.export-btn:hover{border-color:var(--green);color:var(--green)}
 </style>
 </head>
 <body>
@@ -208,16 +180,16 @@ td{padding:9px 13px;white-space:nowrap;vertical-align:middle}
 <!-- LOADING SCREEN -->
 <div id="loadingScreen">
   <div class="spinner"></div>
-  <div class="loading-text" id="loadingText">Connecting to Google Sheets…</div>
-  <div class="loading-sub" id="loadingSub">Please wait, fetching data…</div>
+  <div class="loading-text" id="loadingText">Fetching latest data…</div>
+  <div class="loading-sub" id="loadingSub">Connecting to data source</div>
 </div>
 
 <!-- ERROR BANNER -->
 <div id="errorBanner">
-  <strong>⚠️ Could not load data</strong>
+  <strong>⚠️ Could not load data from GitHub</strong>
   <span id="errorMsg"></span><br><br>
-  <strong>To fix this:</strong> Open this file, find <code>CSV_URL</code> near the top of the script, and update it with your correct Google Sheets published CSV URL.<br>
-  The URL format should be: <code>https://docs.google.com/spreadsheets/d/e/YOUR_SHEET_ID/pub?gid=0&amp;single=true&amp;output=csv</code>
+  <strong>To fix this:</strong> Open this file, find <code>CSV_URL</code> near the top of the script, and update it with your correct GitHub raw URL.<br>
+  The URL format should be: <code>https://raw.githubusercontent.com/YOUR_USERNAME/YOUR_REPO/main/RR_no_AP.csv</code>
 </div>
 
 <!-- HEADER -->
@@ -231,7 +203,7 @@ td{padding:9px 13px;white-space:nowrap;vertical-align:middle}
   </div>
   <div class="header-right">
     <span class="data-age" id="dataAge"></span>
-    <button class="refresh-btn" id="refreshBtn" onclick="fetchAndRender(true)">
+    <button class="refresh-btn" id="refreshBtn" onclick="fetchAndRender()">
       <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
       Refresh
     </button>
@@ -272,61 +244,21 @@ td{padding:9px 13px;white-space:nowrap;vertical-align:middle}
 
   <div class="trend-card"><div class="chart-title">Receipt Volume Trend</div><div class="chart-sub">Daily RR count and amount</div><div style="height:150px"><canvas id="trendChart"></canvas></div></div>
 
-  <div class="section-label">Monthly Analysis</div>
-  <div class="charts-row" style="grid-template-columns:1fr 1fr;margin-bottom:22px">
-    <div class="chart-card">
-      <div class="chart-title">Monthly Balance Comparison</div>
-      <div class="chart-sub">Outstanding PHP balance by receipt month</div>
-      <div style="height:220px"><canvas id="monthlyChart"></canvas></div>
-    </div>
-    <div class="chart-card">
-      <div class="chart-title">Waterfall — Monthly Movement</div>
-      <div class="chart-sub">New additions vs. cleared by month · PHP millions</div>
-      <div style="height:220px"><canvas id="waterfallChart"></canvas></div>
-    </div>
-  </div>
-  <!-- Monthly Breakdown Table -->
-  <div class="table-wrap" style="margin-bottom:22px">
-    <div class="table-hdr">
-      <div class="table-title">Monthly Balance Summary</div>
-      <div style="font-family:'DM Mono',monospace;font-size:11px;color:var(--muted)">New Additions · Cleared · Net Movement · Closing Balance</div>
-    </div>
-    <div class="table-scroll" style="max-height:300px">
-      <table>
-        <thead><tr>
-          <th>Month</th>
-          <th style="text-align:right">Opening Balance</th>
-          <th style="text-align:right">+ New Additions</th>
-          <th style="text-align:right">− Cleared</th>
-          <th style="text-align:right">Net Movement</th>
-          <th style="text-align:right">Closing Balance</th>
-        </tr></thead>
-        <tbody id="monthlyTblBody"></tbody>
-      </table>
-    </div>
-  </div>
-
   <div class="section-label">Transaction Detail</div>
+  <div class="filters-row">
+    <input class="search-box" id="searchBox" type="text" placeholder="🔍  Search supplier, RR #, PO #, description, user…" oninput="applyFilters()">
+    <select class="filter-select" id="ftItemType" onchange="applyFilters()"><option value="ALL">All Item Types</option><option value="Product">Product</option><option value="Cost">Cost</option></select>
+    <select class="filter-select" id="ftCur" onchange="applyFilters()"><option value="ALL">All Currencies</option><option value="PHP">PHP</option><option value="USD">USD</option><option value="YEN">YEN</option><option value="EUR">EUR</option></select>
+    <select class="filter-select" id="ftDue" onchange="applyFilters()"><option value="ALL">All Due Status</option><option value="PAST">Past Due</option><option value="WEEK">Due ≤7 Days</option><option value="OK">Not Yet Due</option></select>
+    <button class="filter-btn" onclick="clearFilters()">✕ Clear</button>
+    <span class="results-info" id="resInfo"></span>
+  </div>
   <div class="active-filter-bar" id="pillBar"></div>
 
   <div class="table-wrap">
     <div class="table-hdr">
-      <div style="display:flex;align-items:center;gap:10px">
-        <div class="table-title">Receiving Reports — Un-vouchered</div>
-        <span class="results-info" id="resInfo"></span>
-      </div>
-      <div style="display:flex;align-items:center;gap:8px">
-        <div style="font-family:'DM Mono',monospace;font-size:11px;color:var(--muted)" id="tblTotal"></div>
-        <button class="export-btn" onclick="exportCSV()">
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-          Export CSV
-        </button>
-        <button class="filter-trigger" id="filterTrigger" onclick="openFilterDrawer()">
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="4" y1="6" x2="20" y2="6"/><line x1="8" y1="12" x2="16" y2="12"/><line x1="11" y1="18" x2="13" y2="18"/></svg>
-          Filters
-          <span class="filter-badge" id="filterBadge" style="display:none">0</span>
-        </button>
-      </div>
+      <div class="table-title">Receiving Reports — Un-vouchered</div>
+      <div style="font-family:'DM Mono',monospace;font-size:11px;color:var(--muted)" id="tblTotal"></div>
     </div>
     <div class="table-scroll">
       <table>
@@ -352,59 +284,12 @@ td{padding:9px 13px;white-space:nowrap;vertical-align:middle}
   </div>
 </div>
 
-<!-- FILTER OVERLAY -->
-<div class="filter-overlay" id="filterOverlay" onclick="closeFilterDrawer()"></div>
-
-<!-- FILTER DRAWER -->
-<div class="filter-drawer" id="filterDrawer">
-  <div class="drawer-header">
-    <div class="drawer-title">🔍 Filter Records</div>
-    <button class="drawer-close" onclick="closeFilterDrawer()">✕ Close</button>
-  </div>
-  <div class="drawer-body">
-    <div class="drawer-section">
-      <div class="drawer-label">Search</div>
-      <input class="drawer-search" id="searchBox" type="text" placeholder="Supplier, RR #, PO #, description, user…" oninput="applyFilters()">
-    </div>
-    <div class="drawer-section">
-      <div class="drawer-label">Item Type</div>
-      <select class="drawer-select" id="ftItemType" onchange="applyFilters()">
-        <option value="ALL">All Item Types</option>
-        <option value="Product">Product</option>
-        <option value="Cost">Cost</option>
-      </select>
-    </div>
-    <div class="drawer-section">
-      <div class="drawer-label">Currency</div>
-      <select class="drawer-select" id="ftCur" onchange="applyFilters()">
-        <option value="ALL">All Currencies</option>
-        <option value="PHP">PHP</option>
-        <option value="USD">USD</option>
-        <option value="YEN">YEN</option>
-        <option value="EUR">EUR</option>
-      </select>
-    </div>
-    <div class="drawer-section">
-      <div class="drawer-label">Due Status</div>
-      <select class="drawer-select" id="ftDue" onchange="applyFilters()">
-        <option value="ALL">All Due Status</option>
-        <option value="PAST">Past Due</option>
-        <option value="WEEK">Due ≤ 7 Days</option>
-        <option value="OK">Not Yet Due</option>
-      </select>
-    </div>
-    <div class="drawer-section" id="pillBarDrawer"></div>
-  </div>
-  <div class="drawer-footer">
-    <button class="btn-clear-all" onclick="clearFilters()">✕ Clear All</button>
-    <button class="btn-apply" onclick="closeFilterDrawer()">Apply & Close</button>
-  </div>
-</div>
+<script>
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 //  ★  UPDATE THIS URL AFTER UPLOADING TO GITHUB  ★
 //  Format: https://raw.githubusercontent.com/USERNAME/REPO/main/FILENAME.csv
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-const CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSOMQ8Ua9z-8WbkMCJc-XxY4ySdQrJnak-uPAeiQNtaJpL1Ta7QGKPuIcwQbXAM0wBTSwOkX6iuzcNp/pub?gid=0&single=true&output=csv'
+const CSV_URL = 'https://raw.githubusercontent.com/YOUR_USERNAME/YOUR_REPO/main/RR_no_AP.csv';
 
 // ── CONSTANTS ──────────────────────────────────────────
 const PAGE_SIZE = 50;
@@ -416,7 +301,7 @@ let allData=[], filteredData=[];
 let activeBucket='ALL', activeSupplier=null;
 let sortKey='Amount in PHP', sortDir=-1;
 let currentPage=1;
-let agingChart, itemChart, trendChart, monthlyChart, waterfallChart;
+let agingChart, itemChart, trendChart;
 let lastFetched=null;
 
 // ── FORMATTERS ─────────────────────────────────────────
@@ -426,99 +311,37 @@ const ini=s=>s.trim().slice(0,2).toUpperCase();
 const set=(id,val)=>{const el=document.getElementById(id);if(el)el.textContent=val};
 
 // ── FETCH & PARSE ──────────────────────────────────────
-const CACHE_TTL = 5 * 60 * 1000; // 5 minutes
-let cachedText = null, cacheTime = 0;
-
-async function fetchWithTimeout(url, ms) {
-  const controller = new AbortController();
-  const tid = setTimeout(() => controller.abort(), ms);
-  try {
-    const res = await fetch(url, { signal: controller.signal, cache: 'no-store' });
-    clearTimeout(tid);
-    return res;
-  } catch(e) {
-    clearTimeout(tid);
-    throw e;
-  }
-}
-
-async function fetchAndRender(forceRefresh = false) {
+async function fetchAndRender() {
   const btn = document.getElementById('refreshBtn');
   btn.classList.add('spinning');
+  setLoading(true, 'Fetching latest data…', CSV_URL.split('/').pop());
 
-  if (!forceRefresh && cachedText && (Date.now() - cacheTime < CACHE_TTL)) {
-    setLoading(true, 'Loading from cache…', 'Data is up to date');
-    await new Promise(r => setTimeout(r, 80));
-    allData = parseCSV(cachedText);
-    renderAfterFetch();
-    setLoading(false);
-    btn.classList.remove('spinning');
-    return;
-  }
-
-  setLoading(true, 'Connecting to Google Sheets…', 'Please wait…');
-
-  // Try direct fetch first, then CORS proxy fallback
-  const directURL = CSV_URL;
-  const proxyURL = 'https://corsproxy.io/?' + encodeURIComponent(CSV_URL);
-
-  let text = null;
-  let lastErr = '';
-
-  // Attempt 1: direct (works when hosted on a server / GitHub Pages)
   try {
-    set('loadingText', 'Fetching data…');
-    set('loadingSub', 'Attempt 1 of 2 — direct connection');
-    const res = await fetchWithTimeout(directURL, 12000);
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    text = await res.text();
-  } catch(e) {
-    lastErr = e.message;
-    console.warn('Direct fetch failed:', e.message);
-  }
-
-  // Attempt 2: CORS proxy fallback
-  if (!text) {
-    try {
-      set('loadingText', 'Retrying via proxy…');
-      set('loadingSub', 'Attempt 2 of 2 — CORS proxy');
-      const res = await fetchWithTimeout(proxyURL, 15000);
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      text = await res.text();
-    } catch(e) {
-      lastErr = e.message;
-      console.warn('Proxy fetch failed:', e.message);
-    }
-  }
-
-  if (text) {
-    cachedText = text;
-    cacheTime = Date.now();
+    // Cache-bust so GitHub serves fresh CSV, not a cached copy
+    const url = CSV_URL + '?t=' + Date.now();
+    const res = await fetch(url);
+    if (!res.ok) throw new Error(`HTTP ${res.status} — check your CSV_URL in the script`);
+    const text = await res.text();
     allData = parseCSV(text);
-    renderAfterFetch();
+    lastFetched = new Date();
+
+    const today = new Date();
+    set('asOfDate', today.toLocaleDateString('en-PH',{month:'long',day:'numeric',year:'numeric'}));
+    set('dataAge','Last fetched: '+lastFetched.toLocaleTimeString('en-PH',{hour:'2-digit',minute:'2-digit'}));
+
+    activeBucket='ALL'; activeSupplier=null;
+    document.querySelectorAll('.bucket-btn').forEach(b=>b.classList.remove('active'));
+    document.querySelector('.bucket-btn[data-bucket="ALL"]').classList.add('active');
+    clearFilters();
+    renderAll();
     setLoading(false);
-    document.getElementById('errorBanner').style.display = 'none';
-  } else {
+    document.getElementById('errorBanner').style.display='none';
+  } catch(err) {
     setLoading(false);
-    showError(
-      (lastErr.includes('abort') || lastErr.includes('Abort') ? 'Request timed out. ' : lastErr + '. ') +
-      'Make sure this file is hosted on GitHub Pages (not opened locally). ' +
-      'If already hosted, check that the Google Sheet is published: File → Share → Publish to web → CSV.'
-    );
+    showError(err.message);
+    console.error('Fetch error:', err);
   }
   btn.classList.remove('spinning');
-}
-
-function renderAfterFetch() {
-  const today = new Date();
-  lastFetched = new Date();
-  set('asOfDate', today.toLocaleDateString('en-PH',{month:'long',day:'numeric',year:'numeric'}));
-  set('dataAge','Last fetched: '+lastFetched.toLocaleTimeString('en-PH',{hour:'2-digit',minute:'2-digit'}));
-  activeBucket='ALL'; activeSupplier=null;
-  document.querySelectorAll('.bucket-btn').forEach(b=>b.classList.remove('active'));
-  document.querySelector('.bucket-btn[data-bucket="ALL"]').classList.add('active');
-  clearFilters();
-  renderAll();
 }
 
 function setLoading(show, text='', sub='') {
@@ -550,11 +373,9 @@ function parseCSV(text) {
     const r={};
     headers.forEach((h,j)=>r[h]=(vals[j]||'').replace(/^"|"$/g,'').trim());
     r['Amount in PHP']=parseFloat((r['Amount in PHP']||'0').replace(/,/g,''))||0;
-    const rdt=parseDate(r['Receipt Dt']), ddt=parseDate(r['Due Date']), adt=parseDate(r['AP Date']);
+    const rdt=parseDate(r['Receipt Dt']), ddt=parseDate(r['Due Date']);
     r['Receipt Dt']=rdt?rdt.toISOString().slice(0,10):'';
     r['Due Date']=ddt?ddt.toISOString().slice(0,10):'';
-    r['AP Date']=adt?adt.toISOString().slice(0,10):'';
-    r['Status']=(r['Status']||'Open').trim();
     const age=rdt?Math.round((today-rdt)/86400000):0;
     r['Age']=age;
     r['Days Overdue']=ddt?Math.round((today-ddt)/86400000):-999;
@@ -595,7 +416,6 @@ function renderAll(){
   renderAgingChart(allData); renderItemChart(allData);
   renderCurList(allData); renderSuppliers(allData);
   renderUsers(allData); renderTrend(allData);
-  renderMonthlyCharts(allData);
   applyFilters();
 }
 
@@ -741,19 +561,9 @@ function renderPills(){
   const it=document.getElementById('ftItemType').value; if(it!=='ALL')pills.push({l:'Type: '+it,f:()=>{document.getElementById('ftItemType').value='ALL';applyFilters()}});
   const cur=document.getElementById('ftCur').value; if(cur!=='ALL')pills.push({l:'Cur: '+cur,f:()=>{document.getElementById('ftCur').value='ALL';applyFilters()}});
   const due=document.getElementById('ftDue').value; if(due!=='ALL')pills.push({l:'Due: '+due,f:()=>{document.getElementById('ftDue').value='ALL';applyFilters()}});
-  const q=document.getElementById('searchBox').value; if(q)pills.push({l:'Search: "'+q.slice(0,16)+(q.length>16?'…':'')+'"',f:()=>{document.getElementById('searchBox').value='';applyFilters()}});
   window._pills=pills;
-  const pillHTML=pills.length
+  document.getElementById('pillBar').innerHTML=pills.length
     ?'<span style="font-size:11px;color:var(--muted)">Active:</span>'+pills.map((p,i)=>`<span class="filter-pill">${p.l}<span class="pill-x" onclick="_pills[${i}].f()">✕</span></span>`).join(''):'';
-  document.getElementById('pillBar').innerHTML=pillHTML;
-  const pillBarDrawer=document.getElementById('pillBarDrawer');
-  if(pillBarDrawer)pillBarDrawer.innerHTML=pillHTML;
-  // Update badge
-  const badge=document.getElementById('filterBadge');
-  const trigger=document.getElementById('filterTrigger');
-  const activeCount=[it!=='ALL',cur!=='ALL',due!=='ALL',!!q,activeBucket!=='ALL',!!activeSupplier].filter(Boolean).length;
-  if(badge){badge.style.display=activeCount?'inline':'none';badge.textContent=activeCount;}
-  if(trigger){trigger.classList.toggle('has-filters',activeCount>0);}
 }
 
 // ── TABLE ──────────────────────────────────────────────
@@ -803,221 +613,8 @@ function renderPagination(){
 function goPage(p){const pages=Math.ceil(filteredData.length/PAGE_SIZE);if(p<1||p>pages)return;currentPage=p;renderTable()}
 function sortBy(key){if(sortKey===key)sortDir*=-1;else{sortKey=key;sortDir=-1};applyFilters()}
 
-// ── FILTER DRAWER ──────────────────────────────────────
-function openFilterDrawer(){
-  document.getElementById('filterDrawer').classList.add('open');
-  document.getElementById('filterOverlay').classList.add('open');
-  document.body.style.overflow='hidden';
-}
-function closeFilterDrawer(){
-  document.getElementById('filterDrawer').classList.remove('open');
-  document.getElementById('filterOverlay').classList.remove('open');
-  document.body.style.overflow='';
-}
-
-// ── EXPORT CSV ─────────────────────────────────────────
-function exportCSV(){
-  const cols=['RR Number','BP Code / Received From','PO Number','Item Code / Description','Quantity','Cur','Amount in PHP','Receipt Dt','Due Date','AP Date','Age','Days Overdue','Aging Bucket','Item Type','Status','User'];
-  const esc=v=>{const s=String(v??'');return s.includes(',')||s.includes('"')||s.includes('\n')?'"'+s.replace(/"/g,'""')+'"':s};
-  const rows=[cols.join(','),...filteredData.map(r=>cols.map(c=>esc(r[c])).join(','))];
-  const blob=new Blob([rows.join('\n')],{type:'text/csv'});
-  const a=document.createElement('a');
-  a.href=URL.createObjectURL(blob);
-  a.download='RR_Aging_Export_'+new Date().toISOString().slice(0,10)+'.csv';
-  a.click();
-  URL.revokeObjectURL(a.href);
-}
-
-// ── MONTHLY ANALYSIS ───────────────────────────────────
-function renderMonthlyCharts(data) {
-  const monthMap = {};
-  const ensure = mo => { if (!monthMap[mo]) monthMap[mo] = { additions: 0, cleared: 0, openCount: 0, clearedCount: 0 }; };
-
-  // New Additions — grouped by Receipt Dt month (all records)
-  data.forEach(r => {
-    if (!r['Receipt Dt']) return;
-    const mo = r['Receipt Dt'].slice(0, 7);
-    ensure(mo);
-    monthMap[mo].additions += r['Amount in PHP'];
-    monthMap[mo].openCount++;
-  });
-
-  // Cleared — grouped by AP Date month, only where Status = Cleared (case-insensitive)
-  data.forEach(r => {
-    const status = (r['Status'] || '').toLowerCase();
-    if (!r['AP Date'] || status !== 'cleared') return;
-    const mo = r['AP Date'].slice(0, 7);
-    ensure(mo);
-    monthMap[mo].cleared += r['Amount in PHP'];
-    monthMap[mo].clearedCount++;
-  });
-
-  const months = Object.keys(monthMap).sort();
-  const labels = months.map(m => {
-    const [y, mo] = m.split('-');
-    return new Date(+y, +mo - 1).toLocaleDateString('en-PH', { month: 'short', year: '2-digit' });
-  });
-
-  // Build running balance for waterfall
-  const additions = months.map(m => monthMap[m].additions);
-  const cleared = months.map(m => monthMap[m].cleared);
-  const counts = months.map(m => monthMap[m].openCount);
-  const clearedCounts = months.map(m => monthMap[m].clearedCount);
-
-  // Running closing balance
-  let running = 0;
-  const openBal = [], closeBal = [], netMov = [];
-  months.forEach((m, i) => {
-    openBal.push(running);
-    const net = additions[i] - cleared[i];
-    netMov.push(net);
-    running += net;
-    closeBal.push(running);
-  });
-
-  // ── Monthly Balance Comparison Chart ──
-  const ctxM = document.getElementById('monthlyChart').getContext('2d');
-  if (monthlyChart) monthlyChart.destroy();
-  monthlyChart = new Chart(ctxM, {
-    type: 'bar',
-    data: {
-      labels,
-      datasets: [
-        {
-          label: 'New Additions',
-          data: additions.map(v => v / 1e6),
-          backgroundColor: 'rgba(124,92,191,0.75)',
-          borderRadius: 4,
-          borderSkipped: false
-        },
-        {
-          label: 'Cleared',
-          data: cleared.map(v => v / 1e6),
-          backgroundColor: 'rgba(45,125,95,0.75)',
-          borderRadius: 4,
-          borderSkipped: false
-        },
-        {
-          label: 'Closing Balance',
-          data: closeBal.map(v => v / 1e6),
-          type: 'line',
-          borderColor: '#d97b4a',
-          backgroundColor: 'rgba(217,123,74,0.08)',
-          fill: true,
-          tension: 0.35,
-          pointRadius: 4,
-          pointBackgroundColor: '#d97b4a',
-          yAxisID: 'y'
-        }
-      ]
-    },
-    options: {
-      responsive: true, maintainAspectRatio: false,
-      plugins: {
-        legend: { position: 'top', labels: { color: '#7a6e62', font: { size: 10 }, padding: 10 } },
-        tooltip: { callbacks: { label: c => c.dataset.label + ': ₱' + c.parsed.y.toFixed(2) + 'M' } }
-      },
-      scales: {
-        x: { grid: { color: '#e2ddd6' }, ticks: { color: '#7a6e62', font: { size: 10 } } },
-        y: { grid: { color: '#e2ddd6' }, ticks: { color: '#7a6e62', font: { size: 10 }, callback: v => '₱' + v + 'M' } }
-      }
-    }
-  });
-
-  // ── Waterfall Chart ──
-  const ctxW = document.getElementById('waterfallChart').getContext('2d');
-  if (waterfallChart) waterfallChart.destroy();
-
-  // Waterfall: floating bars [start, end] per segment
-  // Segments per month: Opening (transparent base) + Addition (green) + Cleared (red going down) = Closing
-  const wfLabels = [], wfBase = [], wfAdd = [], wfClr = [], wfClrBase = [];
-  months.forEach((m, i) => {
-    wfLabels.push(labels[i]);
-    wfBase.push(openBal[i] / 1e6);
-    wfAdd.push(additions[i] / 1e6);
-    wfClrBase.push((openBal[i] + additions[i] - cleared[i]) / 1e6);
-    wfClr.push(cleared[i] / 1e6);
-  });
-
-  waterfallChart = new Chart(ctxW, {
-    type: 'bar',
-    data: {
-      labels: wfLabels,
-      datasets: [
-        {
-          label: 'Opening Base',
-          data: wfBase,
-          backgroundColor: 'transparent',
-          borderColor: 'transparent',
-          stack: 'wf'
-        },
-        {
-          label: 'New Additions',
-          data: wfAdd,
-          backgroundColor: 'rgba(124,92,191,0.78)',
-          borderRadius: 3,
-          stack: 'wf'
-        },
-        {
-          label: 'Cleared Base',
-          data: wfClrBase,
-          backgroundColor: 'transparent',
-          borderColor: 'transparent',
-          stack: 'wf2'
-        },
-        {
-          label: 'Cleared',
-          data: wfClr,
-          backgroundColor: 'rgba(45,125,95,0.78)',
-          borderRadius: 3,
-          stack: 'wf2'
-        }
-      ]
-    },
-    options: {
-      responsive: true, maintainAspectRatio: false,
-      plugins: {
-        legend: {
-          position: 'top',
-          labels: {
-            color: '#7a6e62', font: { size: 10 }, padding: 10,
-            filter: item => !item.text.includes('Base')
-          }
-        },
-        tooltip: {
-          filter: item => !item.dataset.label.includes('Base'),
-          callbacks: { label: c => c.dataset.label + ': ₱' + c.parsed.y.toFixed(2) + 'M' }
-        }
-      },
-      scales: {
-        x: { grid: { color: '#e2ddd6' }, ticks: { color: '#7a6e62', font: { size: 10 } }, stacked: true },
-        y: { grid: { color: '#e2ddd6' }, stacked: true, ticks: { color: '#7a6e62', font: { size: 10 }, callback: v => '₱' + v + 'M' } }
-      }
-    }
-  });
-
-  // ── Monthly Summary Table ──
-  document.getElementById('monthlyTblBody').innerHTML = months.map((m, i) => {
-    const net = netMov[i];
-    const netColor = net >= 0 ? 'var(--red)' : 'var(--green)';
-    const netSign = net >= 0 ? '+' : '';
-    return `<tr>
-      <td style="font-family:'DM Mono',monospace;font-size:11px;font-weight:600;color:var(--accent)">${labels[i]}</td>
-      <td style="text-align:right;font-family:'DM Mono',monospace;font-size:11px">₱${fmtM(openBal[i])}</td>
-      <td style="text-align:right;font-family:'DM Mono',monospace;font-size:11px;color:var(--purple)">+₱${fmtM(additions[i])}<br><span style="font-size:10px;color:var(--muted)">${counts[i]} RRs</span></td>
-      <td style="text-align:right;font-family:'DM Mono',monospace;font-size:11px;color:var(--green)">−₱${fmtM(cleared[i])}<br><span style="font-size:10px;color:var(--muted)">${clearedCounts[i]} RRs</span></td>
-      <td style="text-align:right;font-family:'DM Mono',monospace;font-size:11px;color:${netColor};font-weight:600">${netSign}₱${fmtM(net)}</td>
-      <td style="text-align:right;font-family:'DM Mono',monospace;font-size:11px;font-weight:600">₱${fmtM(closeBal[i])}</td>
-    </tr>`;
-  }).join('');
-}
-
 // ── INIT ───────────────────────────────────────────────
-if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', () => fetchAndRender());
-} else {
-  fetchAndRender();
-}
+fetchAndRender();
 </script>
 </body>
 </html>
