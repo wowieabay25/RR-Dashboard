@@ -173,6 +173,45 @@ td{padding:9px 13px;white-space:nowrap;vertical-align:middle}
 ::-webkit-scrollbar-track{background:var(--surface2)}
 ::-webkit-scrollbar-thumb{background:var(--dim);border-radius:3px}
 ::-webkit-scrollbar-thumb:hover{background:var(--muted)}
+
+/* SUPPLIER TABS */
+.s-tab{background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:5px 11px;font-family:'Sora',sans-serif;font-size:11px;color:var(--muted);cursor:pointer;transition:all .15s;white-space:nowrap}
+.s-tab:hover{color:var(--text);border-color:var(--accent)}
+.s-tab.active{background:rgba(217,123,74,0.12);border-color:var(--accent);color:var(--accent);font-weight:600}
+.s-count-badge{font-family:'DM Mono',monospace;font-size:11px;color:var(--purple);text-align:right;min-width:40px;font-weight:600}
+
+.fp-overlay{position:fixed;inset:0;background:rgba(26,20,16,0.35);z-index:200;opacity:0;pointer-events:none;transition:opacity .25s}
+.fp-overlay.open{opacity:1;pointer-events:all}
+.fp-panel{position:fixed;top:0;right:0;width:320px;height:100vh;background:var(--surface);border-left:1px solid var(--border);z-index:201;transform:translateX(100%);transition:transform .28s cubic-bezier(.4,0,.2,1);display:flex;flex-direction:column;box-shadow:-4px 0 24px rgba(180,140,100,0.12)}
+.fp-panel.open{transform:translateX(0)}
+.fp-head{display:flex;align-items:center;justify-content:space-between;padding:18px 20px;border-bottom:1px solid var(--border);background:var(--surface2)}
+.fp-head-title{font-size:14px;font-weight:600;color:var(--text)}
+.fp-close{background:none;border:none;cursor:pointer;color:var(--muted);font-size:18px;padding:2px 6px;border-radius:4px;transition:all .15s}
+.fp-close:hover{color:var(--text);background:var(--border)}
+.fp-body{flex:1;overflow-y:auto;padding:20px}
+.fp-group{margin-bottom:20px}
+.fp-group-label{font-family:'DM Mono',monospace;font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.1em;margin-bottom:8px;display:block}
+.fp-search{width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:9px 12px;color:var(--text);font-family:'Sora',sans-serif;font-size:12px;outline:none;transition:border-color .2s}
+.fp-search:focus{border-color:var(--accent)}
+.fp-search::placeholder{color:var(--muted)}
+.fp-select{width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:9px 12px;color:var(--text);font-family:'Sora',sans-serif;font-size:12px;outline:none;cursor:pointer}
+.fp-divider{height:1px;background:var(--border);margin:4px 0 20px}
+.fp-foot{padding:16px 20px;border-top:1px solid var(--border);display:flex;gap:8px}
+.fp-apply{flex:1;background:var(--accent);color:#fff;border:none;border-radius:8px;padding:10px;font-family:'Sora',sans-serif;font-size:13px;font-weight:600;cursor:pointer;transition:background .2s}
+.fp-apply:hover{background:var(--accent2)}
+.fp-reset{background:var(--surface2);color:var(--muted);border:1px solid var(--border);border-radius:8px;padding:10px 14px;font-family:'Sora',sans-serif;font-size:12px;cursor:pointer;transition:all .2s}
+.fp-reset:hover{color:var(--text);border-color:var(--accent)}
+/* active indicator dot on filter button */
+.filter-open-btn{position:relative;display:flex;align-items:center;gap:6px;background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:7px 13px;font-family:'Sora',sans-serif;font-size:12px;color:var(--muted);cursor:pointer;transition:all .2s;white-space:nowrap}
+.filter-open-btn:hover{border-color:var(--accent);color:var(--accent)}
+.filter-open-btn.has-filters{border-color:var(--accent);color:var(--accent);background:rgba(217,123,74,0.07)}
+.filter-dot{width:7px;height:7px;border-radius:50%;background:var(--accent);display:none;position:absolute;top:5px;right:5px}
+.filter-open-btn.has-filters .filter-dot{display:block}
+/* export button */
+.export-btn{display:flex;align-items:center;gap:6px;background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:7px 13px;font-family:'Sora',sans-serif;font-size:12px;color:var(--muted);cursor:pointer;transition:all .2s;white-space:nowrap}
+.export-btn:hover{border-color:var(--green);color:var(--green)}
+/* active pills inside table header area */
+.tbl-filter-bar{display:flex;align-items:center;gap:7px;flex-wrap:wrap;min-height:8px;margin-bottom:10px}
 </style>
 </head>
 <body>
@@ -238,22 +277,92 @@ td{padding:9px 13px;white-space:nowrap;vertical-align:middle}
   </div>
 
   <div class="middle-row">
-    <div class="chart-card"><div class="chart-title">Top 10 Suppliers by Outstanding Amount</div><div class="chart-sub">Click to filter detail table</div><div id="supplierList"></div></div>
+    <!-- SUPPLIER CARD with tabs -->
+    <div class="chart-card" style="overflow:hidden">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px">
+        <div>
+          <div class="chart-title">Top 25 Suppliers</div>
+          <div class="chart-sub">Click a row to filter the detail table</div>
+        </div>
+        <div style="display:flex;gap:4px" id="supplierTabBtns">
+          <button class="s-tab active" data-tab="amount" onclick="switchSupplierTab('amount')">By Amount</button>
+          <button class="s-tab" data-tab="count" onclick="switchSupplierTab('count')">By RR Count</button>
+        </div>
+      </div>
+      <div id="supplierList" style="max-height:420px;overflow-y:auto;padding-right:4px"></div>
+    </div>
     <div class="chart-card"><div class="chart-title">User Bottleneck</div><div class="chart-sub">By total amount processed</div><div id="userList"></div></div>
   </div>
 
   <div class="trend-card"><div class="chart-title">Receipt Volume Trend</div><div class="chart-sub">Daily RR count and amount</div><div style="height:150px"><canvas id="trendChart"></canvas></div></div>
 
   <div class="section-label">Transaction Detail</div>
-  <div class="filters-row">
-    <input class="search-box" id="searchBox" type="text" placeholder="🔍  Search supplier, RR #, PO #, description, user…" oninput="applyFilters()">
-    <select class="filter-select" id="ftItemType" onchange="applyFilters()"><option value="ALL">All Item Types</option><option value="Product">Product</option><option value="Cost">Cost</option></select>
-    <select class="filter-select" id="ftCur" onchange="applyFilters()"><option value="ALL">All Currencies</option><option value="PHP">PHP</option><option value="USD">USD</option><option value="YEN">YEN</option><option value="EUR">EUR</option></select>
-    <select class="filter-select" id="ftDue" onchange="applyFilters()"><option value="ALL">All Due Status</option><option value="PAST">Past Due</option><option value="WEEK">Due ≤7 Days</option><option value="OK">Not Yet Due</option></select>
-    <button class="filter-btn" onclick="clearFilters()">✕ Clear</button>
-    <span class="results-info" id="resInfo"></span>
+
+  <!-- FILTER PANEL OVERLAY + DRAWER -->
+  <div class="fp-overlay" id="fpOverlay" onclick="closeFilterPanel()"></div>
+  <div class="fp-panel" id="fpPanel">
+    <div class="fp-head">
+      <span class="fp-head-title">🔧 Filter &amp; Search</span>
+      <button class="fp-close" onclick="closeFilterPanel()">✕</button>
+    </div>
+    <div class="fp-body">
+      <div class="fp-group">
+        <span class="fp-group-label">Search</span>
+        <input class="fp-search" id="searchBox" type="text" placeholder="Supplier, RR #, PO #, description, user…" oninput="applyFilters()">
+      </div>
+      <div class="fp-divider"></div>
+      <div class="fp-group">
+        <span class="fp-group-label">Item Type</span>
+        <select class="fp-select" id="ftItemType" onchange="applyFilters()">
+          <option value="ALL">All Item Types</option>
+          <option value="Product">Product</option>
+          <option value="Cost">Cost</option>
+        </select>
+      </div>
+      <div class="fp-group">
+        <span class="fp-group-label">Currency</span>
+        <select class="fp-select" id="ftCur" onchange="applyFilters()">
+          <option value="ALL">All Currencies</option>
+          <option value="PHP">PHP</option>
+          <option value="USD">USD</option>
+          <option value="YEN">YEN</option>
+          <option value="EUR">EUR</option>
+        </select>
+      </div>
+      <div class="fp-group">
+        <span class="fp-group-label">Due Status</span>
+        <select class="fp-select" id="ftDue" onchange="applyFilters()">
+          <option value="ALL">All Due Status</option>
+          <option value="PAST">Past Due</option>
+          <option value="WEEK">Due ≤7 Days</option>
+          <option value="OK">Not Yet Due</option>
+        </select>
+      </div>
+      <div class="fp-divider"></div>
+      <div style="font-family:'DM Mono',monospace;font-size:10px;color:var(--muted);padding:4px 2px" id="resInfo">—</div>
+    </div>
+    <div class="fp-foot">
+      <button class="fp-reset" onclick="clearFilters()">✕ Reset</button>
+      <button class="fp-apply" onclick="closeFilterPanel()">Done</button>
+    </div>
   </div>
-  <div class="active-filter-bar" id="pillBar"></div>
+
+  <!-- TABLE TOOLBAR -->
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;flex-wrap:wrap;gap:8px">
+    <div class="tbl-filter-bar" id="pillBar"></div>
+    <div style="display:flex;gap:8px;align-items:center">
+      <span style="font-family:'DM Mono',monospace;font-size:11px;color:var(--muted)" id="resInfoInline"></span>
+      <button class="export-btn" onclick="exportCSV()" title="Export filtered results to CSV">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        Export CSV
+      </button>
+      <button class="filter-open-btn" id="filterOpenBtn" onclick="openFilterPanel()">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="4" y1="6" x2="20" y2="6"/><line x1="8" y1="12" x2="16" y2="12"/><line x1="11" y1="18" x2="13" y2="18"/></svg>
+        Filters
+        <span class="filter-dot"></span>
+      </button>
+    </div>
+  </div>
 
   <div class="table-wrap">
     <div class="table-hdr">
@@ -289,7 +398,7 @@ td{padding:9px 13px;white-space:nowrap;vertical-align:middle}
 //  ★  UPDATE THIS URL AFTER UPLOADING TO GITHUB  ★
 //  Format: https://raw.githubusercontent.com/USERNAME/REPO/main/FILENAME.csv
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-const CSV_URL = 'https://raw.githubusercontent.com/wowieabay25/RR-Dashboard/refs/heads/main/RR_no_AP.csv';
+const CSV_URL = 'https://raw.githubusercontent.com/YOUR_USERNAME/YOUR_REPO/main/RR_no_AP.csv';
 
 // ── CONSTANTS ──────────────────────────────────────────
 const PAGE_SIZE = 50;
@@ -493,16 +602,39 @@ function renderCurList(data){
     <div style="text-align:right"><div class="cur-amount" style="color:${CUR_COLORS[c]||'#7a6e62'}">₱${fmtM(a)}</div><div class="cur-pct">${tot?(a/tot*100).toFixed(1):0}%</div></div></div>`).join('');
 }
 
+let supplierTab = 'amount';
+
+function switchSupplierTab(tab){
+  supplierTab = tab;
+  document.querySelectorAll('.s-tab').forEach(b=>b.classList.toggle('active', b.dataset.tab===tab));
+  renderSuppliers(allData);
+}
+
 function renderSuppliers(data){
   const by={};
-  data.forEach(r=>{const k=r['BP Code / Received From'];if(!by[k])by[k]=0;by[k]+=r['Amount in PHP']});
-  const sorted=Object.entries(by).sort((a,b)=>b[1]-a[1]).slice(0,10);
-  const max=sorted[0]?.[1]||1;
-  document.getElementById('supplierList').innerHTML=sorted.map(([n,a],i)=>`
-    <div class="supplier-bar ${activeSupplier===n?'selected':''}" onclick="filterSupplier('${n.replace(/\\/g,'\\\\').replace(/'/g,"\\'")}')">
-      <span class="s-rank">${i+1}</span><span class="s-name" title="${n}">${n}</span>
-      <div class="s-track"><div class="s-fill" style="width:${(a/max*100).toFixed(1)}%"></div></div>
-      <span class="s-amount">₱${fmtM(a)}</span></div>`).join('');
+  data.forEach(r=>{const k=r['BP Code / Received From'];if(!by[k])by[k]={a:0,n:0};by[k].a+=r['Amount in PHP'];by[k].n++;});
+
+  if(supplierTab==='amount'){
+    const sorted=Object.entries(by).sort((a,b)=>b[1].a-a[1].a).slice(0,25);
+    const max=sorted[0]?.[1].a||1;
+    document.getElementById('supplierList').innerHTML=sorted.map(([n,{a,nv}],i)=>`
+      <div class="supplier-bar ${activeSupplier===n?'selected':''}" onclick="filterSupplier('${n.replace(/\\/g,'\\\\').replace(/'/g,"\\'")}')">
+        <span class="s-rank">${i+1}</span><span class="s-name" title="${n}">${n}</span>
+        <div class="s-track"><div class="s-fill" style="width:${(a/max*100).toFixed(1)}%"></div></div>
+        <span class="s-amount">₱${fmtM(a)}</span>
+      </div>`).join('');
+  } else {
+    const sorted=Object.entries(by).sort((a,b)=>b[1].n-a[1].n).slice(0,25);
+    const max=sorted[0]?.[1].n||1;
+    document.getElementById('supplierList').innerHTML=sorted.map(([n,{a,nv}],i)=>{
+      const cnt=by[n].n;
+      return`<div class="supplier-bar ${activeSupplier===n?'selected':''}" onclick="filterSupplier('${n.replace(/\\/g,'\\\\').replace(/'/g,"\\'")}')">
+        <span class="s-rank">${i+1}</span><span class="s-name" title="${n}">${n}</span>
+        <div class="s-track"><div class="s-fill" style="width:${(cnt/max*100).toFixed(1)}%;background:linear-gradient(90deg,#7c5cbf,#a07de0)"></div></div>
+        <span class="s-count-badge">${cnt} RRs</span>
+        <span class="s-amount" style="min-width:60px">₱${fmtM(a)}</span>
+      </div>`}).join('');
+  }
 }
 
 function filterSupplier(name){
@@ -550,8 +682,11 @@ function clearFilters(){
 
 function updateInfo(){
   const tot=filteredData.reduce((s,r)=>s+r['Amount in PHP'],0);
-  set('resInfo',filteredData.length+' records · ₱'+fmtM(tot));
+  const txt=filteredData.length+' records · ₱'+fmtM(tot);
+  set('resInfo',txt);
+  set('resInfoInline',txt);
   set('tblTotal','₱'+fmt(tot)+' PHP');
+  updateFilterBtn();
 }
 
 function renderPills(){
@@ -615,6 +750,45 @@ function sortBy(key){if(sortKey===key)sortDir*=-1;else{sortKey=key;sortDir=-1};a
 
 // ── INIT ───────────────────────────────────────────────
 fetchAndRender();
+
+// ── FILTER PANEL ───────────────────────────────────────
+function openFilterPanel(){
+  document.getElementById('fpPanel').classList.add('open');
+  document.getElementById('fpOverlay').classList.add('open');
+  document.body.style.overflow='hidden';
+}
+function closeFilterPanel(){
+  document.getElementById('fpPanel').classList.remove('open');
+  document.getElementById('fpOverlay').classList.remove('open');
+  document.body.style.overflow='';
+}
+document.addEventListener('keydown',e=>{if(e.key==='Escape')closeFilterPanel()});
+
+// ── UPDATE FILTER BUTTON STATE ─────────────────────────
+function updateFilterBtn(){
+  const hasFilters = document.getElementById('searchBox').value ||
+    document.getElementById('ftItemType').value !== 'ALL' ||
+    document.getElementById('ftCur').value !== 'ALL' ||
+    document.getElementById('ftDue').value !== 'ALL' ||
+    activeSupplier;
+  document.getElementById('filterOpenBtn').classList.toggle('has-filters', !!hasFilters);
+}
+
+// ── CSV EXPORT ─────────────────────────────────────────
+function exportCSV(){
+  if(!filteredData.length){alert('No records to export.');return}
+  const cols=['RR Number','BP Code / Received From','PO Number','Item Code / Description','Quantity','Cur','Amount in PHP','Receipt Dt','Due Date','Age','Days Overdue','Aging Bucket','Item Type','User'];
+  const esc=v=>{const s=String(v??'');return s.includes(',')||s.includes('"')||s.includes('\n')?'"'+s.replace(/"/g,'""')+'"':s};
+  const rows=[cols.join(','),...filteredData.map(r=>cols.map(c=>esc(r[c])).join(','))];
+  const blob=new Blob([rows.join('\n')],{type:'text/csv'});
+  const a=document.createElement('a');
+  const today=new Date().toISOString().slice(0,10);
+  a.href=URL.createObjectURL(blob);
+  a.download='RR_Aging_'+today+'.csv';
+  a.click();
+  URL.revokeObjectURL(a.href);
+}
+
 </script>
 </body>
 </html>
