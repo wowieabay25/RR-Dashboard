@@ -289,7 +289,7 @@ td{padding:9px 13px;white-space:nowrap;vertical-align:middle}
           <button class="s-tab" data-tab="count" onclick="switchSupplierTab('count')">By RR Count</button>
         </div>
       </div>
-      <div id="supplierList" style="max-height:420px;overflow-y:auto;padding-right:4px"></div>
+      <div id="supplierList" style="padding-right:4px"></div>
     </div>
     <div class="chart-card"><div class="chart-title">User Bottleneck</div><div class="chart-sub">By total amount processed</div><div id="userList"></div></div>
   </div>
@@ -612,7 +612,7 @@ function switchSupplierTab(tab){
 
 function renderSuppliers(data){
   const by={};
-  data.forEach(r=>{const k=r['BP Code / Received From'];if(!by[k])by[k]={a:0,n:0};by[k].a+=r['Amount in PHP'];by[k].n++;});
+  data.forEach(r=>{const k=r['BP Code / Received From'];if(!by[k])by[k]={a:0,n:0,rrs:new Set()};by[k].a+=r['Amount in PHP'];by[k].n++;if(r['RR Number'])by[k].rrs.add(r['RR Number']);});
 
   if(supplierTab==='amount'){
     const sorted=Object.entries(by).sort((a,b)=>b[1].a-a[1].a).slice(0,25);
@@ -624,10 +624,10 @@ function renderSuppliers(data){
         <span class="s-amount">₱${fmtM(a)}</span>
       </div>`).join('');
   } else {
-    const sorted=Object.entries(by).sort((a,b)=>b[1].n-a[1].n).slice(0,25);
-    const max=sorted[0]?.[1].n||1;
-    document.getElementById('supplierList').innerHTML=sorted.map(([n,{a,nv}],i)=>{
-      const cnt=by[n].n;
+    const sorted=Object.entries(by).sort((a,b)=>b[1].rrs.size-a[1].rrs.size).slice(0,25);
+    const max=sorted[0]?.[1].rrs.size||1;
+    document.getElementById('supplierList').innerHTML=sorted.map(([n,{a,rrs}],i)=>{
+      const cnt=rrs.size;
       return`<div class="supplier-bar ${activeSupplier===n?'selected':''}" onclick="filterSupplier('${n.replace(/\\/g,'\\\\').replace(/'/g,"\\'")}')">
         <span class="s-rank">${i+1}</span><span class="s-name" title="${n}">${n}</span>
         <div class="s-track"><div class="s-fill" style="width:${(cnt/max*100).toFixed(1)}%;background:linear-gradient(90deg,#7c5cbf,#a07de0)"></div></div>
