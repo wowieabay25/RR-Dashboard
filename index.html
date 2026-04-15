@@ -534,13 +534,15 @@ function updateKPIs(data){
   const ages=data.map(r=>r['Age']).filter(a=>a>=0);
   const avg=ages.length?ages.reduce((s,a)=>s+a,0)/ages.length:0;
   const ov=data.filter(r=>r['Days Overdue']>0);
+  const uniqueRRs=new Set(data.map(r=>r['RR Number']).filter(Boolean)).size;
+  const uniqueOvRRs=new Set(ov.map(r=>r['RR Number']).filter(Boolean)).size;
   set('kpi-total','₱'+fmtM(total));
   set('kpi-total-sub',fmt(total)+' PHP');
-  set('kpi-count',data.length.toLocaleString());
+  set('kpi-count',uniqueRRs.toLocaleString());
   set('kpi-age',avg.toFixed(1)+'d');
   set('kpi-age-sub','Range: '+Math.min(...data.map(r=>r['Age']))+'–'+Math.max(...data.map(r=>r['Age']))+' days');
   set('kpi-overdue',ov.length?'₱'+fmtM(ov.reduce((s,r)=>s+r['Amount in PHP'],0)):'₱0');
-  set('kpi-overdue-sub',ov.length+' RRs past due date');
+  set('kpi-overdue-sub',uniqueOvRRs+' RRs past due date');
 }
 
 // ── BUCKETS ────────────────────────────────────────────
