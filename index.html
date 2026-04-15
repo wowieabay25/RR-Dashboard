@@ -495,7 +495,7 @@ td{padding:9px 13px;white-space:nowrap;vertical-align:middle}
 //  ★  UPDATE THIS URL AFTER UPLOADING TO GITHUB  ★
 //  Format: https://raw.githubusercontent.com/USERNAME/REPO/main/FILENAME.csv
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-const CSV_URL = 'https://raw.githubusercontent.com/wowieabay25/RR-Dashboard/refs/heads/main/RR_no_AP.csv';
+const CSV_URL = 'https://raw.githubusercontent.com/wowieabay25/RR-Dashboard/main/RR_no_AP.csv';
 
 // ── CONSTANTS ──────────────────────────────────────────
 const PAGE_SIZE = 50;
@@ -528,7 +528,10 @@ async function fetchAndRender() {
   try {
     // Cache-bust so GitHub serves fresh CSV, not a cached copy
     const url = CSV_URL + '?t=' + Date.now();
-    const res = await fetch(url);
+    const controller = new AbortController();
+    const timeout = setTimeout(()=>controller.abort(), 15000); // 15s timeout
+    const res = await fetch(url, {signal: controller.signal});
+    clearTimeout(timeout);
     if (!res.ok) throw new Error(`HTTP ${res.status} — check your CSV_URL in the script`);
     const text = await res.text();
     allData = parseCSV(text);
@@ -547,7 +550,10 @@ async function fetchAndRender() {
     document.getElementById('errorBanner').style.display='none';
   } catch(err) {
     setLoading(false);
-    showError(err.message);
+    const msg = err.name === 'AbortError'
+      ? 'Request timed out after 15 seconds. Check your internet connection or verify the CSV file exists at the URL in the script.'
+      : err.message;
+    showError(msg);
     console.error('Fetch error:', err);
   }
   btn.classList.remove('spinning');
