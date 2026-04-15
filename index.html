@@ -174,36 +174,6 @@ td{padding:9px 13px;white-space:nowrap;vertical-align:middle}
 ::-webkit-scrollbar-thumb{background:var(--dim);border-radius:3px}
 ::-webkit-scrollbar-thumb:hover{background:var(--muted)}
 
-/* STATUS CHECKER MODAL */
-.sc-overlay{position:fixed;inset:0;background:rgba(26,20,16,0.45);z-index:300;opacity:0;pointer-events:none;transition:opacity .25s}
-.sc-overlay.open{opacity:1;pointer-events:all}
-.sc-modal{position:fixed;top:50%;left:50%;transform:translate(-50%,-48%);width:min(92vw,1100px);max-height:88vh;background:var(--surface);border-radius:14px;border:1px solid var(--border);z-index:301;display:flex;flex-direction:column;box-shadow:0 20px 60px rgba(0,0,0,0.18);opacity:0;pointer-events:none;transition:opacity .25s,transform .25s}
-.sc-modal.open{opacity:1;pointer-events:all;transform:translate(-50%,-50%)}
-.sc-head{display:flex;align-items:flex-start;justify-content:space-between;padding:20px 24px 16px;border-bottom:1px solid var(--border);background:var(--surface2);border-radius:14px 14px 0 0}
-.sc-title{font-size:15px;font-weight:700;color:var(--text)}
-.sc-subtitle{font-size:11px;color:var(--muted);margin-top:2px;font-family:'DM Mono',monospace}
-.sc-summary{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;padding:16px 24px;border-bottom:1px solid var(--border);background:var(--bg)}
-.sc-sum-card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:12px 14px;text-align:center}
-.sc-sum-val{font-size:22px;font-weight:700;margin-bottom:3px}
-.sc-sum-lbl{font-size:10px;color:var(--muted);font-family:'DM Mono',monospace;text-transform:uppercase;letter-spacing:.07em}
-.sc-sum-noap .sc-sum-val{color:var(--accent)}
-.sc-sum-processed .sc-sum-val{color:var(--green)}
-.sc-sum-total .sc-sum-val{color:var(--purple)}
-.sc-sum-pct .sc-sum-val{color:var(--gold)}
-.sc-search-row{display:flex;align-items:center;gap:8px;padding:14px 24px;border-bottom:1px solid var(--border)}
-.sc-search{flex:1;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:9px 12px;color:var(--text);font-family:'Sora',sans-serif;font-size:12px;outline:none;transition:border-color .2s}
-.sc-search:focus{border-color:var(--purple)}
-.sc-search::placeholder{color:var(--muted)}
-.sc-table-wrap{overflow:auto;flex:1}
-.sc-table-wrap table{width:100%;border-collapse:collapse;font-size:12px}
-.sc-table-wrap thead th{background:var(--surface2);padding:9px 13px;text-align:left;font-family:'DM Mono',monospace;font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.07em;white-space:nowrap;position:sticky;top:0;z-index:2;border-bottom:1px solid var(--border);cursor:pointer;transition:color .15s}
-.sc-table-wrap thead th:hover{color:var(--purple)}
-.sc-table-wrap tbody tr{border-bottom:1px solid rgba(200,191,181,0.3);transition:background .1s}
-.sc-table-wrap tbody tr:hover{background:rgba(124,92,191,0.04)}
-.sc-table-wrap td{padding:9px 13px;white-space:nowrap;vertical-align:middle}
-.status-noap{display:inline-flex;align-items:center;gap:4px;background:rgba(217,123,74,0.1);color:var(--accent2);border:1px solid rgba(217,123,74,0.28);border-radius:10px;padding:2px 9px;font-size:10px;font-weight:600;font-family:'DM Mono',monospace}
-.status-processed{display:inline-flex;align-items:center;gap:4px;background:rgba(45,125,95,0.1);color:var(--green);border:1px solid rgba(45,125,95,0.28);border-radius:10px;padding:2px 9px;font-size:10px;font-weight:600;font-family:'DM Mono',monospace}
-
 /* SUPPLIER TABS */
 .s-tab{background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:5px 11px;font-family:'Sora',sans-serif;font-size:11px;color:var(--muted);cursor:pointer;transition:all .15s;white-space:nowrap}
 .s-tab:hover{color:var(--text);border-color:var(--accent)}
@@ -258,7 +228,7 @@ td{padding:9px 13px;white-space:nowrap;vertical-align:middle}
   <strong>⚠️ Could not load data from GitHub</strong>
   <span id="errorMsg"></span><br><br>
   <strong>To fix this:</strong> Open this file, find <code>CSV_URL</code> near the top of the script, and update it with your correct GitHub raw URL.<br>
-  The URL format should be: <code>https://raw.githubusercontent.com/wowieabay25/RR-Dashboard/refs/heads/main/RR_no_AP.csv</code>
+  The URL format should be: <code>https://raw.githubusercontent.com/YOUR_USERNAME/YOUR_REPO/main/RR_no_AP.csv</code>
 </div>
 
 <!-- HEADER -->
@@ -275,10 +245,6 @@ td{padding:9px 13px;white-space:nowrap;vertical-align:middle}
     <button class="refresh-btn" id="refreshBtn" onclick="fetchAndRender()">
       <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
       Refresh
-    </button>
-    <button class="refresh-btn" onclick="openStatusChecker()" style="border-color:var(--purple);color:var(--purple)" title="Check if an RR has been processed">
-      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
-      RR Status
     </button>
     <div class="as-of">As of <span id="asOfDate">—</span></div>
   </div>
@@ -425,72 +391,9 @@ td{padding:9px 13px;white-space:nowrap;vertical-align:middle}
     </div>
     <div class="pag-row"><span id="pagInfo">—</span><div class="pag-btns" id="pagBtns"></div></div>
   </div>
-  </div><!-- end container -->
-
 </div>
 
 <script>
-<div class="sc-modal" id="scModal">
-  <div class="sc-head">
-    <div>
-      <div class="sc-title">🔍 RR Status Checker</div>
-      <div class="sc-subtitle">Check if a Receiving Report has been processed (AP/DM vouchered)</div>
-    </div>
-    <button class="fp-close" onclick="closeStatusChecker()">✕</button>
-  </div>
-
-  <!-- Summary strip -->
-  <div class="sc-summary">
-    <div class="sc-sum-card sc-sum-noap">
-      <div class="sc-sum-val" id="sc-noap-cnt">—</div>
-      <div class="sc-sum-lbl">Un-vouchered RRs</div>
-    </div>
-    <div class="sc-sum-card sc-sum-processed">
-      <div class="sc-sum-val" id="sc-proc-cnt">—</div>
-      <div class="sc-sum-lbl">Processed (AP/DM)</div>
-    </div>
-    <div class="sc-sum-card sc-sum-total">
-      <div class="sc-sum-val" id="sc-total-cnt">—</div>
-      <div class="sc-sum-lbl">Total RRs in Register</div>
-    </div>
-    <div class="sc-sum-card sc-sum-pct">
-      <div class="sc-sum-val" id="sc-proc-pct">—</div>
-      <div class="sc-sum-lbl">Processing Rate</div>
-    </div>
-  </div>
-
-  <!-- Search bar -->
-  <div class="sc-search-row">
-    <input class="sc-search" id="scSearchBox" type="text" placeholder="Search RR number, supplier, PO number…" oninput="scApplyFilters()">
-    <select class="fp-select" id="scStatusFilter" onchange="scApplyFilters()" style="width:160px;flex-shrink:0">
-      <option value="ALL">All Status</option>
-      <option value="NO_AP">Un-vouchered</option>
-      <option value="PROCESSED">Processed</option>
-    </select>
-    <span class="results-info" id="scResInfo" style="white-space:nowrap"></span>
-  </div>
-
-  <!-- Table -->
-  <div class="sc-table-wrap">
-    <table>
-      <thead><tr>
-        <th onclick="scSort('RR Number')">RR Number</th>
-        <th>Status</th>
-        <th onclick="scSort('APV')">APV / Voucher</th>
-        <th onclick="scSort('BP Code / Received From')">Supplier</th>
-        <th onclick="scSort('PO Number')">PO Number</th>
-        <th onclick="scSort('Amount in PHP')" style="text-align:right">Amount (PHP)</th>
-        <th onclick="scSort('Receipt Dt')">Receipt Date</th>
-        <th onclick="scSort('User')">User</th>
-      </tr></thead>
-      <tbody id="scTblBody"></tbody>
-    </table>
-  </div>
-  <div class="pag-row" style="border-radius:0 0 14px 14px">
-    <span id="scPagInfo">—</span>
-    <div class="pag-btns" id="scPagBtns"></div>
-  </div>
-</div>
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 //  ★  UPDATE THIS URL AFTER UPLOADING TO GITHUB  ★
 //  Format: https://raw.githubusercontent.com/USERNAME/REPO/main/FILENAME.csv
@@ -503,15 +406,12 @@ const BUCKET_ORDER = ['Current','1-30 Days','31-60 Days','61-90 Days','91-120 Da
 const CUR_COLORS = {PHP:'#d97b4a',USD:'#2d7d5f',YEN:'#b07d3a',EUR:'#7c5cbf'};
 
 // ── STATE ──────────────────────────────────────────────
-let allData=[], filteredData=[];       // RR with NO AP (APV = 0/empty)
-let processedData=[];                  // AP/DM processed rows
+let allData=[], filteredData=[];
 let activeBucket='ALL', activeSupplier=null;
 let sortKey='Amount in PHP', sortDir=-1;
 let currentPage=1;
 let agingChart, itemChart, trendChart;
 let lastFetched=null;
-// RR Status Checker state
-let scQuery='', scSortKey='Receipt Dt', scSortDir=-1, scPage=1, scData=[], scFiltered=[];
 
 // ── FORMATTERS ─────────────────────────────────────────
 const fmt=n=>isNaN(n)||n==null?'—':n.toLocaleString('en-PH',{minimumFractionDigits:2,maximumFractionDigits:2});
@@ -528,10 +428,7 @@ async function fetchAndRender() {
   try {
     // Cache-bust so GitHub serves fresh CSV, not a cached copy
     const url = CSV_URL + '?t=' + Date.now();
-    const controller = new AbortController();
-    const timeout = setTimeout(()=>controller.abort(), 15000); // 15s timeout
-    const res = await fetch(url, {signal: controller.signal});
-    clearTimeout(timeout);
+    const res = await fetch(url);
     if (!res.ok) throw new Error(`HTTP ${res.status} — check your CSV_URL in the script`);
     const text = await res.text();
     allData = parseCSV(text);
@@ -550,10 +447,7 @@ async function fetchAndRender() {
     document.getElementById('errorBanner').style.display='none';
   } catch(err) {
     setLoading(false);
-    const msg = err.name === 'AbortError'
-      ? 'Request timed out after 15 seconds. Check your internet connection or verify the CSV file exists at the URL in the script.'
-      : err.message;
-    showError(msg);
+    showError(err.message);
     console.error('Fetch error:', err);
   }
   btn.classList.remove('spinning');
@@ -577,18 +471,11 @@ function showError(msg) {
 }
 
 // ── CSV PARSER ─────────────────────────────────────────
-function classifyAPV(apv){
-  const v=(apv||'').toString().trim();
-  if(!v||v==='0'||v==='0.0')return'NO_AP';
-  if(/^(AP|DM)/i.test(v))return'PROCESSED';
-  return'OTHER';
-}
-
 function parseCSV(text) {
   const lines = text.split('\n').filter(l=>l.trim());
   const headers = lines[0].split(',').map(h=>h.trim().replace(/^"|"$/g,'').trim());
   const today = new Date(); today.setHours(0,0,0,0);
-  const noAP=[], processed=[];
+  const rows = [];
   for (let i=1;i<lines.length;i++) {
     const vals = splitCSV(lines[i]);
     if (vals.length < headers.length-2) continue;
@@ -602,12 +489,9 @@ function parseCSV(text) {
     r['Age']=age;
     r['Days Overdue']=ddt?Math.round((today-ddt)/86400000):-999;
     r['Aging Bucket']=agingBucket(age);
-    r['_status']=classifyAPV(r['APV']);
-    if(r['_status']==='NO_AP') noAP.push(r);
-    else if(r['_status']==='PROCESSED') processed.push(r);
+    rows.push(r);
   }
-  processedData=processed;
-  return noAP; // allData = only un-vouchered
+  return rows;
 }
 
 function splitCSV(line){
@@ -641,8 +525,6 @@ function renderAll(){
   renderAgingChart(allData); renderItemChart(allData);
   renderCurList(allData); renderSuppliers(allData);
   renderUsers(allData); renderTrend(allData);
-  // Update status checker summary if modal is open
-  if(document.getElementById('scModal').classList.contains('open')) openStatusChecker();
   applyFilters();
 }
 
@@ -866,93 +748,8 @@ function renderPagination(){
 function goPage(p){const pages=Math.ceil(filteredData.length/PAGE_SIZE);if(p<1||p>pages)return;currentPage=p;renderTable()}
 function sortBy(key){if(sortKey===key)sortDir*=-1;else{sortKey=key;sortDir=-1};applyFilters()}
 
-// ── RR STATUS CHECKER ──────────────────────────────────
-const SC_PAGE = 50;
-
-function openStatusChecker(){
-  scData=[...allData.map(r=>({...r,_status:'NO_AP'})),...processedData.map(r=>({...r,_status:'PROCESSED'}))];
-  // Update summary
-  set('sc-noap-cnt', allData.length.toLocaleString());
-  set('sc-proc-cnt', processedData.length.toLocaleString());
-  const tot=allData.length+processedData.length;
-  set('sc-total-cnt', tot.toLocaleString());
-  set('sc-proc-pct', tot?(processedData.length/tot*100).toFixed(1)+'%':'—');
-  document.getElementById('scSearchBox').value='';
-  document.getElementById('scStatusFilter').value='ALL';
-  scApplyFilters();
-  document.getElementById('scOverlay').classList.add('open');
-  document.getElementById('scModal').classList.add('open');
-  document.body.style.overflow='hidden';
-}
-
-function closeStatusChecker(){
-  document.getElementById('scOverlay').classList.remove('open');
-  document.getElementById('scModal').classList.remove('open');
-  document.body.style.overflow='';
-}
-
-function scApplyFilters(){
-  const q=(document.getElementById('scSearchBox').value||'').toLowerCase();
-  const sf=document.getElementById('scStatusFilter').value;
-  scFiltered=scData.filter(r=>{
-    if(sf!=='ALL'&&r['_status']!==sf)return false;
-    if(q){const h=[r['RR Number'],r['BP Code / Received From'],r['PO Number'],r['APV'],r['User']].join(' ').toLowerCase();if(!h.includes(q))return false}
-    return true;
-  });
-  scFiltered.sort((a,b)=>{
-    let va=a[scSortKey]||'',vb=b[scSortKey]||'';
-    if(typeof va==='string')va=va.toLowerCase();
-    if(typeof vb==='string')vb=vb.toLowerCase();
-    return va<vb?-scSortDir:va>vb?scSortDir:0;
-  });
-  scPage=1;
-  scRenderTable();
-  set('scResInfo', scFiltered.length+' records');
-}
-
-function scSort(key){
-  if(scSortKey===key)scSortDir*=-1; else{scSortKey=key;scSortDir=-1}
-  scApplyFilters();
-}
-
-function scRenderTable(){
-  const page=scFiltered.slice((scPage-1)*SC_PAGE, scPage*SC_PAGE);
-  const tbody=document.getElementById('scTblBody');
-  tbody.innerHTML=page.length
-    ?page.map(r=>`<tr>
-      <td style="font-family:'DM Mono',monospace;color:var(--purple);font-size:11px;font-weight:500">${r['RR Number']||'—'}</td>
-      <td>${r['_status']==='PROCESSED'
-        ?`<span class="status-processed">✓ ${r['APV']||'Processed'}</span>`
-        :`<span class="status-noap">⏳ Pending</span>`}</td>
-      <td style="font-family:'DM Mono',monospace;font-size:11px;color:${r['_status']==='PROCESSED'?'var(--green)':'var(--muted)'}">${r['APV']&&r['APV']!=='0'?r['APV']:'—'}</td>
-      <td style="max-width:200px;overflow:hidden;text-overflow:ellipsis" title="${r['BP Code / Received From']}">${r['BP Code / Received From']||'—'}</td>
-      <td style="font-family:'DM Mono',monospace;font-size:11px">${r['PO Number']||'—'}</td>
-      <td style="font-family:'DM Mono',monospace;text-align:right;font-weight:500">₱${fmt(r['Amount in PHP'])}</td>
-      <td style="font-family:'DM Mono',monospace;font-size:11px">${r['Receipt Dt']||'—'}</td>
-      <td style="font-family:'DM Mono',monospace;font-size:11px;color:var(--muted)">${(r['User']||'').trim()}</td>
-    </tr>`).join('')
-    :'<tr><td colspan="8" class="no-data">No records found.</td></tr>';
-  scRenderPagination();
-}
-
-function scRenderPagination(){
-  const tot=scFiltered.length,pages=Math.ceil(tot/SC_PAGE);
-  const s=(scPage-1)*SC_PAGE+1,e=Math.min(scPage*SC_PAGE,tot);
-  set('scPagInfo',tot?`Showing ${s}–${e} of ${tot}`:'No records');
-  const pb=document.getElementById('scPagBtns');
-  if(pages<=1){pb.innerHTML='';return}
-  let h=`<button class="pag-btn" onclick="scGoPage(${scPage-1})" ${scPage===1?'disabled':''}>‹</button>`;
-  for(let p=1;p<=pages;p++){
-    if(p<=2||p>=pages-1||Math.abs(p-scPage)<=1)h+=`<button class="pag-btn ${p===scPage?'cur':''}" onclick="scGoPage(${p})">${p}</button>`;
-    else if(Math.abs(p-scPage)===2)h+=`<span style="color:var(--muted);padding:0 3px">…</span>`;
-  }
-  h+=`<button class="pag-btn" onclick="scGoPage(${scPage+1})" ${scPage===pages?'disabled':''}>›</button>`;
-  pb.innerHTML=h;
-}
-
-function scGoPage(p){const pages=Math.ceil(scFiltered.length/SC_PAGE);if(p<1||p>pages)return;scPage=p;scRenderTable()}
-
-
+// ── INIT ───────────────────────────────────────────────
+fetchAndRender();
 
 // ── FILTER PANEL ───────────────────────────────────────
 function openFilterPanel(){
